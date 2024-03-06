@@ -1,0 +1,61 @@
+﻿@model IEnumerable<LibraryApp.Models.BookListModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Dostępne książki</h1>
+
+<p>
+    <a asp-action="Create">Utwórz</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Book.Title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Book.Author)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Book.Genre)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Book.PublishedYear)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsAvailabe)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Book.Title)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Book.Author)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Book.Genre)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Book.PublishedYear)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IsAvailabe)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Book.Id">Edytuj</a> |
+                    <a asp-action="Details" asp-route-id="@item.Book.Id">Szczegóły</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Book.Id">Usuń</a> |
+                    <a asp-action="Rent" asp-route-id="@item.Book.Id">Wypożycz</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
