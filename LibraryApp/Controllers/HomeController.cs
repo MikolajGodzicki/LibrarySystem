@@ -7,42 +7,43 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using LibraryApp.Entities;
 using LibraryApp.Models;
-using Microsoft.AspNetCore.Http;
 
 namespace LibraryApp.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : BaseAuthenticatorController
     {
-        private readonly LibraryDbContext _context;
-
-        public HomeController(LibraryDbContext context)
+        public HomeController(LibraryDbContext context) : base(context)
         {
-            _context = context;
         }
 
         // GET: Books
         public IActionResult Index()
         {
-            bool isAuthenticated = HttpContext.Session.GetInt32("UserID") != null;
+            bool isAuthenticated = IsUserAuthenticated();
             ViewData["IsAuthenticated"] = isAuthenticated;
-            if (HttpContext.Session.GetInt32("UserID") == null)
+            ViewData["Username"] = HttpContext.Session.GetString("Username");
+            if (!isAuthenticated)
             {
-                return RedirectToAction("Login", "Account");
+                return RedirectToLogin();
             }
 
-            List<BookListModel> _bookList = new List<BookListModel>();
+            IEnumerable<BookListModel> _bookList = GetBookListModels();
 
+            return View(_bookList);
+        }
+
+        private IEnumerable<BookListModel> GetBookListModels()
+        {
             var books = _context.Books.Include(b => b.BookCopies).ToList();
 
             foreach (var _book in books)
             {
-                _bookList.Add(new BookListModel()
+                yield return new BookListModel()
                 {
                     Book = _book,
                     IsAvailabe = _book.BookCopies.Any(bc => bc.IsAvailable)
-                });
+                };
             }
-            return View(_bookList);
         }
 
         // GET: Books/Details/5

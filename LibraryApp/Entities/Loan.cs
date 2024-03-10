@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel;
 
 namespace LibraryApp.Entities
 {
@@ -13,7 +14,9 @@ namespace LibraryApp.Entities
 
         [ValidateNever]
         public virtual BookCopy BookCopy { get; set; } = default!;
+        [DisplayName("Data Wypożyczenia")]
         public DateTime LoanDate { get; set; }
+        [DisplayName("Data Oddania")]
         public DateTime ReturnDate { get; set; }
     }
 }

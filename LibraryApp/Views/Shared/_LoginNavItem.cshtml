@@ -5,17 +5,20 @@
 <ul class="navbar-nav">
     @if (isAuthenticated)
     {
+        <li class="nav-item border-end border-2">
+            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Details">@ViewData["Username"]</a>
+        </li>
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Logout">Logout</a>
+            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Logout">Wyloguj się</a>
         </li>
     }
     else
     {
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
+            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Register">Rejestracja</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
+            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Login">Logowanie</a>
         </li>
     }
 </ul>

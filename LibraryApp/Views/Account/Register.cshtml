@@ -1,7 +1,71 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
+﻿@model LibraryApp.Entities.User
 
-<h1>Register</h1>
+@{
+    ViewBag.Title = "Register";
+}
+<div class="row justify-content-md-center">
+    <div class="container col-md-5">
+        <div class="card border-light-subtle shadow-sm">
+            <div class="row g-0">
+                <div class="col-12 col-md-12">
+                    <div class="card-body p-3 p-md-4 p-xl-5">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-5">
+                                    <h3>Rejestracja</h3>
+                                </div>
+                            </div>
+                        </div>
+                        @using (Html.BeginForm("Register", "Account", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+
+                            <div class="row gy-3 gy-md-4 overflow-hidden">
+                                <div class="col-12">
+                                    @Html.LabelFor(m => m.Username, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.Username, "", new { @class = "form-control", @placeholder = "Nazwa" })
+                                    @Html.ValidationMessageFor(m => m.Username, "", new { @class = "badge bg-danger" })
+                                </div>
+                                <div class="col-12">
+                                    @Html.LabelFor(m => m.Email, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.Email, "", new { @class = "form-control", @placeholder = "Nazwa@przyklad.com" })
+                                    @Html.ValidationMessageFor(m => m.Email, "", new { @class = "badge bg-danger" })
+                                    @if (ViewBag.error != null)
+                                    {
+                                        <span class="badge bg-danger">@ViewBag.error</span>
+                                    }
+                                </div>
+
+                                <div class="col-12">
+                                    @Html.LabelFor(m => m.Password, new { @class = "form-label" })
+                                    @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "badge bg-danger" })
+                                </div>
+
+                                <div class="col-12">
+
+                                    @Html.LabelFor(m => m.ConfirmPassword, new { @class = "form-label" })
+                                    @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control"})
+                                    @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "badge bg-danger" })
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-grid">
+                                        <input type="submit" name="submit" class="btn btn-primary" value="Zarejestruj" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <div class="row">
+                            <div class="col-12">
+                                <hr class="mt-5 mb-4 border-secondary-subtle">
+                                <div class="d-flex gap-2 gap-md-4 flex-column flex-md-row justify-content-md-end">
+                                    <a asp-area="" asp-controller="Account" asp-action="Login" class="link-secondary text-decoration-none">Posiadasz już konto?</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

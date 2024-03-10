@@ -1,4 +1,5 @@
 ﻿using Elfie.Serialization;
+using LibraryApp.DTOs;
 using LibraryApp.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -7,13 +8,10 @@ using System.Text;
 
 namespace LibraryApp.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController : BaseAuthenticatorController
     {
-        private readonly LibraryDbContext _context;
-
-        public AccountController(LibraryDbContext context)
+        public AccountController(LibraryDbContext context) : base (context)
         {
-            _context = context;
         }
 
         //GET: Register
@@ -25,7 +23,7 @@ namespace LibraryApp.Controllers
         //POST: Register
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Register([Bind("UserID,Username,Password,Email,IsAdmin")] User user)
+        public IActionResult Register([Bind("UserID,Username,Password,ConfirmPassword,Email")] User user)
         {
             if (ModelState.IsValid)
             {
@@ -35,11 +33,11 @@ namespace LibraryApp.Controllers
                     user.Password = GetMD5(user.Password);
                     _context.Users.Add(user);
                     _context.SaveChanges();
-                    return RedirectToAction("Index");
+                    return RedirectToHome();
                 }
                 else
                 {
-                    ViewBag.error = "Email already exists";
+                    ViewBag.error = "Konto z takim E-Mailem istnieje";
                     return View();
                 }
 
@@ -57,23 +55,26 @@ namespace LibraryApp.Controllers
         //POST: Login
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(string Username, string password)
+        public IActionResult Login([Bind("UserID,Username,Password")] UserDTO user)
         {
             if (ModelState.IsValid)
             {
-                var f_password = GetMD5(password);
-                var data = _context.Users.Where(s => s.Username.Equals(Username) && s.Password.Equals(f_password)).ToList();
+                string Username = user.Username;
+                string Password = user.Password;
+
+                var HashedPassword = GetMD5(Password);
+                var data = _context.Users.Where(s => s.Username.Equals(Username) && s.Password.Equals(HashedPassword)).ToList();
                 if (data.Count() > 0)
                 {
                     HttpContext.Session.SetString("Username", data.First().Username);
                     HttpContext.Session.SetString("Email", data.First().Email);
                     HttpContext.Session.SetInt32("UserID", data.First().UserID);
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToHome();
                 }
                 else
                 {
-                    ViewBag.error = "Login failed";
-                    return RedirectToAction("Login");
+                    ViewBag.error = "Błędne dane"; 
+                    return View();
                 }
             }
             return View();
@@ -81,10 +82,15 @@ namespace LibraryApp.Controllers
 
 
         //POST: Logout
-        public ActionResult Logout()
+        public IActionResult Logout()
         {
             HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            return RedirectToLogin();
+        }
+
+        public IActionResult Details()
+        {
+            return View();
         }
 
         public static string GetMD5(string str)

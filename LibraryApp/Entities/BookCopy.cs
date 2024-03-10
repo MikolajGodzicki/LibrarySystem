@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LibraryApp.Entities
@@ -11,6 +12,7 @@ namespace LibraryApp.Entities
 
         [ValidateNever]
         public virtual Book Book {  get; set; }
+        [DisplayName("Dostępność")]
         public bool IsAvailable { get; set; }
 
         [ValidateNever]
