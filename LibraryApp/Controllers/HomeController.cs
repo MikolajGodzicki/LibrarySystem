@@ -21,11 +21,12 @@ namespace LibraryApp.Controllers
         {
             bool isAuthenticated = IsUserAuthenticated();
             ViewData["IsAuthenticated"] = isAuthenticated;
-            ViewData["Username"] = HttpContext.Session.GetString("Username");
             if (!isAuthenticated)
             {
                 return RedirectToLogin();
             }
+
+            ViewData["Username"] = GetUser().Username;
 
             IEnumerable<BookListModel> _bookList = GetBookListModels();
 
@@ -41,21 +42,20 @@ namespace LibraryApp.Controllers
                 yield return new BookListModel()
                 {
                     Book = _book,
-                    IsAvailabe = _book.BookCopies.Any(bc => bc.IsAvailable)
+                    IsAvailable = _book.BookCopies.Any(bc => bc.IsAvailable)
                 };
             }
         }
 
         // GET: Books/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var book = await _context.Books
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var book = _context.Books.FirstOrDefault(m => m.Id == id);
             if (book == null)
             {
                 return NotFound();
@@ -73,59 +73,69 @@ namespace LibraryApp.Controllers
         // POST: Books/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Author,Genre,PublishedYear,Available")] Book book)
+        public IActionResult Create([Bind("Id,Title,Author,Genre,PublishedYear,Available")] Book book)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(book);
-                await _context.SaveChangesAsync();
+                _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
             return View(book);
         }
 
-        public async Task<IActionResult> Rent(int? id)
+        // GET: Books/Rent/5
+        public IActionResult Rent(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var book = await _context.Books.FindAsync(id);
-            if (book == null)
+            var book = _context.Books.Include(b => b.BookCopies).FirstOrDefault(b => b.Id == id && b.Available);
+            if (book == null || !book.BookCopies.Any(bc => bc.IsAvailable))
             {
-                return NotFound();
+                TempData["AlertMessage"] = "Nie ma żadnej kopii do wypożyczenia!";
+                return RedirectToHome();
             }
-            return View(book);
+
+            var bookModel = new BookListModel()
+            {
+                Book = book,
+                IsAvailable = book.BookCopies.Any(bc => bc.IsAvailable)
+            };
+
+            return View(bookModel);
         }
 
+        // POST: Books/Rent/5
         [HttpPost, ActionName("Rent")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RentConfirmed(int id)
+        public IActionResult RentConfirmed(int id)
         {
-            var _book = await _context.Books.FindAsync(id);
-            if (_book != null)
+            var _book = _context.Books.Find(id);
+            if (_book is not null)
             {
-                var _bookCopy = await _context.BookCopies.FirstOrDefaultAsync(e => e.BookID == _book.Id);
+                var _bookCopy = _context.BookCopies.FirstOrDefault(b => b.BookID == _book.Id && b.IsAvailable);
                 if (_bookCopy is not null)
                 {
                     _bookCopy.IsAvailable = false;
                 }
             }
 
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
             return RedirectToAction(nameof(Index));
         }
 
         // GET: Books/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var book = await _context.Books.FindAsync(id);
+            var book = _context.Books.Find(id);
             if (book == null)
             {
                 return NotFound();
@@ -136,7 +146,7 @@ namespace LibraryApp.Controllers
         // POST: Books/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Author,Genre,PublishedYear,Available")] Book book)
+        public IActionResult Edit(int id, [Bind("Id,Title,Author,Genre,PublishedYear,Available")] Book book)
         {
             if (id != book.Id)
             {
@@ -148,7 +158,7 @@ namespace LibraryApp.Controllers
                 try
                 {
                     _context.Update(book);
-                    await _context.SaveChangesAsync();
+                    _context.SaveChanges();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -167,15 +177,14 @@ namespace LibraryApp.Controllers
         }
 
         // GET: Books/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var book = await _context.Books
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var book = _context.Books.FirstOrDefault(m => m.Id == id);
             if (book == null)
             {
                 return NotFound();
@@ -187,15 +196,15 @@ namespace LibraryApp.Controllers
         // POST: Books/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var book = await _context.Books.FindAsync(id);
+            var book = _context.Books.Find(id);
             if (book != null)
             {
                 _context.Books.Remove(book);
             }
 
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
             return RedirectToAction(nameof(Index));
         }
 

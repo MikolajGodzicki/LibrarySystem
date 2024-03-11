@@ -5,6 +5,6 @@ namespace LibraryApp.Models
     public class BookListModel
     {
         public Book Book { get; set; }
-        public bool IsAvailabe {  get; set; }
+        public bool IsAvailable {  get; set; }
     }
 }

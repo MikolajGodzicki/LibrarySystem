@@ -66,8 +66,6 @@ namespace LibraryApp.Controllers
                 var data = _context.Users.Where(s => s.Username.Equals(Username) && s.Password.Equals(HashedPassword)).ToList();
                 if (data.Count() > 0)
                 {
-                    HttpContext.Session.SetString("Username", data.First().Username);
-                    HttpContext.Session.SetString("Email", data.First().Email);
                     HttpContext.Session.SetInt32("UserID", data.First().UserID);
                     return RedirectToHome();
                 }
@@ -90,7 +88,10 @@ namespace LibraryApp.Controllers
 
         public IActionResult Details()
         {
-            return View();
+            User _user = GetUser();
+            ViewData["IsAuthenticated"] = IsUserAuthenticated();
+            ViewData["Username"] = _user.Username;
+            return View(_user);
         }
 
         public static string GetMD5(string str)

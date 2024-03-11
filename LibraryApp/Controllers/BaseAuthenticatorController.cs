@@ -14,6 +14,8 @@ namespace LibraryApp.Controllers
 
         protected bool IsUserAuthenticated() => HttpContext.Session.GetInt32("UserID") != null;
 
+        protected User GetUser() => _context.Users.First(e => e.UserID == HttpContext.Session.GetInt32("UserID"));
+
         protected IActionResult RedirectToLogin() => RedirectToAction("Login", "Account");
 
         protected IActionResult RedirectToHome() => RedirectToAction("Index", "Home");

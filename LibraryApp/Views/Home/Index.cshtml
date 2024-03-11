@@ -4,6 +4,16 @@
     ViewData["Title"] = "Index";
 }
 
+@if (TempData["AlertMessage"] is not null)
+{
+    <div class="alert alert-danger">
+        @TempData["AlertMessage"]
+        <button type="button" class="close" data-dismiss="alert">
+            <span>&times;</span>
+        </button>
+    </div>
+}
+
 <h1>Dostępne książki</h1>
 
 <p>
@@ -25,7 +35,7 @@
                 @Html.DisplayNameFor(model => model.Book.PublishedYear)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.IsAvailabe)
+                @Html.DisplayNameFor(model => model.IsAvailable)
             </th>
             <th></th>
         </tr>
@@ -47,7 +57,7 @@
                     @Html.DisplayFor(modelItem => item.Book.PublishedYear)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.IsAvailabe)
+                    @Html.DisplayFor(modelItem => item.IsAvailable)
                 </td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Book.Id">Edytuj</a> |
