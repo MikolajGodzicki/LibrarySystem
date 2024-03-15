@@ -28,34 +28,20 @@ namespace LibraryApp.Controllers
 
             ViewData["Username"] = GetUser().Username;
 
-            IEnumerable<BookListModel> _bookList = GetBookListModels();
+            IEnumerable<BookCopyViewModel> _bookList = GetBookListModels();
 
             return View(_bookList);
-        }
-
-        private IEnumerable<BookListModel> GetBookListModels()
-        {
-            var books = _context.Books.Include(b => b.BookCopies).ToList();
-
-            foreach (var _book in books)
-            {
-                yield return new BookListModel()
-                {
-                    Book = _book,
-                    IsAvailable = _book.BookCopies.Any(bc => bc.IsAvailable)
-                };
-            }
         }
 
         // GET: Books/Details/5
         public IActionResult Details(int? id)
         {
-            if (id == null)
+            if (id is null)
             {
                 return NotFound();
             }
 
-            var book = _context.Books.FirstOrDefault(m => m.Id == id);
+            var book = GetBookListModel(id);
             if (book == null)
             {
                 return NotFound();
@@ -95,14 +81,14 @@ namespace LibraryApp.Controllers
             var book = _context.Books.Include(b => b.BookCopies).FirstOrDefault(b => b.Id == id && b.Available);
             if (book == null || !book.BookCopies.Any(bc => bc.IsAvailable))
             {
-                TempData["AlertMessage"] = "Nie ma żadnej kopii do wypożyczenia!";
+                TempData["AlertMessage"] = "ALERT";
                 return RedirectToHome();
             }
 
-            var bookModel = new BookListModel()
+            var bookModel = new BookCopyViewModel()
             {
                 Book = book,
-                IsAvailable = book.BookCopies.Any(bc => bc.IsAvailable)
+                Available = book.BookCopies.Any(bc => bc.IsAvailable)
             };
 
             return View(bookModel);
@@ -211,6 +197,35 @@ namespace LibraryApp.Controllers
         private bool BookExists(int id)
         {
             return _context.Books.Any(e => e.Id == id);
+        }
+
+        private IEnumerable<BookCopyViewModel> GetBookListModels()
+        {
+            var books = _context.Books.Include(b => b.BookCopies).ToList();
+
+            foreach (var _book in books)
+            {
+                yield return new BookCopyViewModel()
+                {
+                    Book = _book,
+                    Available = _book.BookCopies.Any(bc => bc.IsAvailable)
+                };
+            }
+        }
+        private BookCopyViewModel? GetBookListModel(int? id)
+        {
+            var books = _context.Books.Include(b => b.BookCopies).ToList();
+
+            var book = books.FirstOrDefault(b => b.Id == id);
+
+            if (book is null || id is null)
+                return null;
+
+            return new BookCopyViewModel()
+            {
+                Book = book,
+                Available = book.BookCopies.Any(bc => bc.IsAvailable)
+            };
         }
     }
 }
