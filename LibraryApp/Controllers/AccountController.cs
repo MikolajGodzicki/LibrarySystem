@@ -1,111 +1,99 @@
 ﻿using Elfie.Serialization;
-using LibraryApp.DTOs;
 using LibraryApp.Entities;
+using LibraryApp.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace LibraryApp.Controllers
-{
-    public class AccountController : BaseAuthenticatorController
-    {
-        public AccountController(LibraryDbContext context) : base (context)
-        {
-        }
-
-        //GET: Register
-        public IActionResult Register()
-        {
-            return View();
-        }
-
-        //POST: Register
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Register([Bind("UserID,Username,Password,ConfirmPassword,Email")] User user)
-        {
-            if (ModelState.IsValid)
-            {
-                var check = _context.Users.FirstOrDefault(s => s.Email == user.Email);
-                if (check == null)
-                {
-                    user.Password = GetMD5(user.Password);
-                    _context.Users.Add(user);
-                    _context.SaveChanges();
-                    return RedirectToHome();
-                }
-                else
-                {
-                    ViewBag.error = "Konto z takim E-Mailem istnieje";
-                    return View();
-                }
-
-            }
-
-            return View();
+namespace LibraryApp.Controllers {
+    public class AccountController : BaseAuthenticatorController {
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager) : base(userManager, signInManager) {
         }
 
         //GET: Login
-        public ActionResult Login()
-        {
+        [HttpGet]
+        public IActionResult Login() {
             return View();
         }
 
         //POST: Login
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Login([Bind("UserID,Username,Password")] UserDTO user)
-        {
-            if (ModelState.IsValid)
-            {
-                string Username = user.Username;
-                string Password = user.Password;
-
-                var HashedPassword = GetMD5(Password);
-                var data = _context.Users.Where(s => s.Username.Equals(Username) && s.Password.Equals(HashedPassword)).ToList();
-                if (data.Count() > 0)
-                {
-                    HttpContext.Session.SetInt32("UserID", data.First().UserID);
-                    return RedirectToHome();
-                }
-                else
-                {
-                    ViewBag.error = "Błędne dane"; 
-                    return View();
-                }
+        public async Task<IActionResult> Login(UserLoginModel userLoginModel) {
+            if (!ModelState.IsValid) {
+                return View(userLoginModel);
             }
+
+            var result = await _signInManager.PasswordSignInAsync(userLoginModel.UserName, userLoginModel.Password, false, false);
+
+            if (!result.Succeeded) {
+                ViewBag.LoginError = "Nie znaleziono konta z takimi danymi!";
+                return View();
+            }
+
+            return RedirectToHome();
+        }
+
+        //GET: Register
+        [HttpGet]
+        public IActionResult Register() {
             return View();
         }
 
+        //POST: Register
+        [HttpPost]
+        public async Task<IActionResult> Register(UserRegisterModel userRegisterModel) {
+            if (!ModelState.IsValid) {
+                return View(userRegisterModel);
+            }
+
+            var checkUserName = await _userManager.FindByNameAsync(userRegisterModel.UserName);
+            if (checkUserName is not null) {
+                ViewBag.UserNameValidationError = "Konto z taką nazwą istnieje";
+                return View();
+            }
+
+            var checkEmail = await _userManager.FindByEmailAsync(userRegisterModel.Email);
+            if (checkEmail is not null) {
+                ViewBag.EmailValidationError = "Konto z takim E-Mailem istnieje";
+                return View();
+            }
+
+            var checkPasswords = userRegisterModel.Password.Equals(userRegisterModel.ConfirmPassword);
+            if (!checkPasswords) {
+                ViewBag.PasswordConfirmValidationError = "Hasła się różnią";
+                return View();
+            }
+
+            var _newUser = new User() {
+                UserName = userRegisterModel.UserName,
+                Email = userRegisterModel.Email
+            };
+
+            await _userManager.CreateAsync(_newUser, userRegisterModel.Password);
+
+            return RedirectToHome();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details() {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user is null) {
+                return NotFound();
+            }
+
+            return View(user);
+        }
+
+
 
         //POST: Logout
-        public IActionResult Logout()
-        {
-            HttpContext.Session.Clear();
+        public async Task<IActionResult> Logout() {
+            await _signInManager.SignOutAsync();
             return RedirectToLogin();
-        }
-
-        public IActionResult Details()
-        {
-            User _user = GetUser();
-            ViewData["IsAuthenticated"] = IsUserAuthenticated();
-            ViewData["Username"] = _user.Username;
-            return View(_user);
-        }
-
-        public static string GetMD5(string str)
-        {
-            using (var md5Hash = MD5.Create())
-            {
-                var sourceBytes = Encoding.UTF8.GetBytes(str);
-
-                var hashBytes = md5Hash.ComputeHash(sourceBytes);
-
-                var hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-
-                return hash;
-            }
         }
     }
 }

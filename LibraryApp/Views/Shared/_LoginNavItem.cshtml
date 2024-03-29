@@ -1,12 +1,11 @@
 ﻿@{
-    bool isAuthenticated = Convert.ToBoolean(ViewData["IsAuthenticated"]);
 }
 
 <ul class="navbar-nav">
-    @if (isAuthenticated)
+    @if (User.Identity.IsAuthenticated)
     {
         <li class="nav-item border-end border-2">
-            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Details">@ViewData["Username"]</a>
+            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Details">@User.Identity.Name</a>
         </li>
         <li class="nav-item">
             <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Logout">Wyloguj się</a>

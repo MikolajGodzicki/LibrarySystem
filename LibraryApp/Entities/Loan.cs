@@ -6,7 +6,7 @@ namespace LibraryApp.Entities
     public class Loan
     {
         public int Id { get; set; }
-        public int UserID { get; set; }
+        public string UserID { get; set; }
 
         [ValidateNever]
         public virtual User User { get; set; } = default!;

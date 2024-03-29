@@ -7,43 +7,33 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using LibraryApp.Entities;
 using LibraryApp.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
-namespace LibraryApp.Controllers
-{
-    public class HomeController : BaseAuthenticatorController
-    {
-        public HomeController(LibraryDbContext context) : base(context)
-        {
+namespace LibraryApp.Controllers {
+    [Authorize]
+    public class HomeController : RedirectorController {
+        private readonly LibraryDbContext _context;
+
+        public HomeController(LibraryDbContext context) {
+            _context = context;
         }
 
         // GET: Books
-        public IActionResult Index()
-        {
-            bool isAuthenticated = IsUserAuthenticated();
-            ViewData["IsAuthenticated"] = isAuthenticated;
-            if (!isAuthenticated)
-            {
-                return RedirectToLogin();
-            }
-
-            ViewData["Username"] = GetUser().Username;
-
+        public IActionResult Index() {
             IEnumerable<BookCopyViewModel> _bookList = GetBookListModels();
 
             return View(_bookList);
         }
 
         // GET: Books/Details/5
-        public IActionResult Details(int? id)
-        {
-            if (id is null)
-            {
+        public IActionResult Details(int? id) {
+            if (id is null) {
                 return NotFound();
             }
 
             var book = GetBookListModel(id);
-            if (book == null)
-            {
+            if (book == null) {
                 return NotFound();
             }
 
@@ -51,18 +41,15 @@ namespace LibraryApp.Controllers
         }
 
         // GET: Books/Create
-        public IActionResult Create()
-        {
+        public IActionResult Create() {
             return View();
         }
 
         // POST: Books/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("Id,Title,Author,Genre,PublishedYear,Available")] Book book)
-        {
-            if (ModelState.IsValid)
-            {
+        public IActionResult Create([Bind("Id,Title,Author,Genre,PublishedYear,Available")] Book book) {
+            if (ModelState.IsValid) {
                 _context.Add(book);
                 _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
@@ -71,22 +58,18 @@ namespace LibraryApp.Controllers
         }
 
         // GET: Books/Rent/5
-        public IActionResult Rent(int? id)
-        {
-            if (id == null)
-            {
+        public IActionResult Rent(int? id) {
+            if (id == null) {
                 return NotFound();
             }
 
             var book = _context.Books.Include(b => b.BookCopies).FirstOrDefault(b => b.Id == id && b.Available);
-            if (book == null || !book.BookCopies.Any(bc => bc.IsAvailable))
-            {
-                TempData["AlertMessage"] = "ALERT";
+            if (book == null || !book.BookCopies.Any(bc => bc.IsAvailable)) {
+                TempData["AlertMessage"] = "Nie możesz wypożyczyć niedostępnej książki!";
                 return RedirectToHome();
             }
 
-            var bookModel = new BookCopyViewModel()
-            {
+            var bookModel = new BookCopyViewModel() {
                 Book = book,
                 Available = book.BookCopies.Any(bc => bc.IsAvailable)
             };
@@ -97,14 +80,11 @@ namespace LibraryApp.Controllers
         // POST: Books/Rent/5
         [HttpPost, ActionName("Rent")]
         [ValidateAntiForgeryToken]
-        public IActionResult RentConfirmed(int id)
-        {
+        public IActionResult RentConfirmed(int id) {
             var _book = _context.Books.Find(id);
-            if (_book is not null)
-            {
+            if (_book is not null) {
                 var _bookCopy = _context.BookCopies.FirstOrDefault(b => b.BookID == _book.Id && b.IsAvailable);
-                if (_bookCopy is not null)
-                {
+                if (_bookCopy is not null) {
                     _bookCopy.IsAvailable = false;
                 }
             }
@@ -114,16 +94,13 @@ namespace LibraryApp.Controllers
         }
 
         // GET: Books/Edit/5
-        public IActionResult Edit(int? id)
-        {
-            if (id == null)
-            {
+        public IActionResult Edit(int? id) {
+            if (id == null) {
                 return NotFound();
             }
 
             var book = _context.Books.Find(id);
-            if (book == null)
-            {
+            if (book == null) {
                 return NotFound();
             }
             return View(book);
@@ -132,28 +109,19 @@ namespace LibraryApp.Controllers
         // POST: Books/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, [Bind("Id,Title,Author,Genre,PublishedYear,Available")] Book book)
-        {
-            if (id != book.Id)
-            {
+        public IActionResult Edit(int id, [Bind("Id,Title,Author,Genre,PublishedYear,Available")] Book book) {
+            if (id != book.Id) {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
+            if (ModelState.IsValid) {
+                try {
                     _context.Update(book);
                     _context.SaveChanges();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!BookExists(book.Id))
-                    {
+                } catch (DbUpdateConcurrencyException) {
+                    if (!BookExists(book.Id)) {
                         return NotFound();
-                    }
-                    else
-                    {
+                    } else {
                         throw;
                     }
                 }
@@ -163,16 +131,13 @@ namespace LibraryApp.Controllers
         }
 
         // GET: Books/Delete/5
-        public IActionResult Delete(int? id)
-        {
-            if (id == null)
-            {
+        public IActionResult Delete(int? id) {
+            if (id == null) {
                 return NotFound();
             }
 
             var book = _context.Books.FirstOrDefault(m => m.Id == id);
-            if (book == null)
-            {
+            if (book == null) {
                 return NotFound();
             }
 
@@ -182,11 +147,9 @@ namespace LibraryApp.Controllers
         // POST: Books/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
-        {
+        public IActionResult DeleteConfirmed(int id) {
             var book = _context.Books.Find(id);
-            if (book != null)
-            {
+            if (book != null) {
                 _context.Books.Remove(book);
             }
 
@@ -194,26 +157,21 @@ namespace LibraryApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool BookExists(int id)
-        {
+        private bool BookExists(int id) {
             return _context.Books.Any(e => e.Id == id);
         }
 
-        private IEnumerable<BookCopyViewModel> GetBookListModels()
-        {
+        private IEnumerable<BookCopyViewModel> GetBookListModels() {
             var books = _context.Books.Include(b => b.BookCopies).ToList();
 
-            foreach (var _book in books)
-            {
-                yield return new BookCopyViewModel()
-                {
+            foreach (var _book in books) {
+                yield return new BookCopyViewModel() {
                     Book = _book,
                     Available = _book.BookCopies.Any(bc => bc.IsAvailable)
                 };
             }
         }
-        private BookCopyViewModel? GetBookListModel(int? id)
-        {
+        private BookCopyViewModel? GetBookListModel(int? id) {
             var books = _context.Books.Include(b => b.BookCopies).ToList();
 
             var book = books.FirstOrDefault(b => b.Id == id);
@@ -221,8 +179,7 @@ namespace LibraryApp.Controllers
             if (book is null || id is null)
                 return null;
 
-            return new BookCopyViewModel()
-            {
+            return new BookCopyViewModel() {
                 Book = book,
                 Available = book.BookCopies.Any(bc => bc.IsAvailable)
             };

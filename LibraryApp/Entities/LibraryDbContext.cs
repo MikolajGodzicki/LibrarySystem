@@ -1,40 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System.Numerics;
 
 namespace LibraryApp.Entities
 {
-    public class LibraryDbContext : DbContext
+    public class LibraryDbContext : IdentityDbContext
     {
         public LibraryDbContext(DbContextOptions<LibraryDbContext> options) : base(options) { }
 
-        public DbSet<User> Users { get; set; }
         public DbSet<Book> Books { get; set; }
         public DbSet<BookCopy> BookCopies { get; set; }
         public DbSet<Loan> Loans { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<User>(entity =>
-            {
-                entity.HasKey(u => u.UserID);
-
-                entity.Property(u => u.Username)
-                    .IsRequired()
-                    .HasMaxLength(32);
-
-                entity.Property(u => u.Password)
-                    .IsRequired()
-                    .HasMaxLength(32);
-
-                entity.Property(u => u.Email)
-                    .IsRequired()
-                    .HasMaxLength(64);
-
-                entity.Property(u => u.IsAdmin)
-                    .IsRequired();
-            });
-
-
             modelBuilder.Entity<Book>(entity =>
             {
                 entity.HasKey(b => b.Id);
@@ -92,6 +71,8 @@ namespace LibraryApp.Entities
                     .WithMany(u => u.Loans)
                     .HasForeignKey(l => l.BookCopyID);
             });
+
+            base.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

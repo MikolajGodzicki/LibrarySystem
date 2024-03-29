@@ -1,4 +1,4 @@
-﻿@model LibraryApp.Entities.User
+﻿@model LibraryApp.Models.UserRegisterModel
 
 @{
     ViewBag.Title = "Register";
@@ -16,26 +16,26 @@
                                 </div>
                             </div>
                         </div>
-                        @using (Html.BeginForm("Register", "Account", FormMethod.Post))
-                        {
+                        @using (Html.BeginForm("Register", "Account", FormMethod.Post)) {
                             @Html.AntiForgeryToken()
 
                             <div class="row gy-3 gy-md-4 overflow-hidden">
                                 <div class="col-12">
-                                    @Html.LabelFor(m => m.Username, new { @class = "form-label" })
-                                    @Html.TextBoxFor(m => m.Username, "", new { @class = "form-control", @placeholder = "Nazwa" })
-                                    @Html.ValidationMessageFor(m => m.Username, "", new { @class = "badge bg-danger" })
+                                    @Html.LabelFor(m => m.UserName, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.UserName, "", new { @class = "form-control", @placeholder = "Nazwa" })
+                                    @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "badge bg-danger" })
+                                    @if (ViewBag.UserNameValidationError != null) {
+                                        <span class="badge bg-danger">@ViewBag.UserNameValidationError</span>
+                                    }
                                 </div>
                                 <div class="col-12">
                                     @Html.LabelFor(m => m.Email, new { @class = "form-label" })
                                     @Html.TextBoxFor(m => m.Email, "", new { @class = "form-control", @placeholder = "Nazwa@przyklad.com" })
                                     @Html.ValidationMessageFor(m => m.Email, "", new { @class = "badge bg-danger" })
-                                    @if (ViewBag.error != null)
-                                    {
-                                        <span class="badge bg-danger">@ViewBag.error</span>
+                                    @if (ViewBag.EmailValidationError != null) {
+                                        <span class="badge bg-danger">@ViewBag.EmailValidationError</span>
                                     }
                                 </div>
-
                                 <div class="col-12">
                                     @Html.LabelFor(m => m.Password, new { @class = "form-label" })
                                     @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
@@ -43,11 +43,14 @@
                                 </div>
 
                                 <div class="col-12">
-
                                     @Html.LabelFor(m => m.ConfirmPassword, new { @class = "form-label" })
-                                    @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control"})
+                                    @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control" })
                                     @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "badge bg-danger" })
+                                    @if (ViewBag.PasswordConfirmValidationError != null) {
+                                        <span class="badge bg-danger">@ViewBag.PasswordConfirmValidationError</span>
+                                    }
                                 </div>
+
                                 <div class="col-12">
                                     <div class="d-grid">
                                         <input type="submit" name="submit" class="btn btn-primary" value="Zarejestruj" />

@@ -1,4 +1,5 @@
 using LibraryApp.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace LibraryApp
 {
@@ -14,10 +15,14 @@ namespace LibraryApp
             builder.Services.AddDbContext<LibraryDbContext>();
             builder.Services.AddTransient<LibrarySeeder>();
 
-            builder.Services.AddSession(options =>
-            {
-                options.IdleTimeout = TimeSpan.FromMinutes(15);
-            });
+            builder.Services.AddIdentity<User, IdentityRole>(options => {
+                options.Password.RequireDigit = false;
+                options.Password.RequiredLength = 2;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireLowercase = false;
+                options.User.RequireUniqueEmail = true;
+            }).AddEntityFrameworkStores<LibraryDbContext>();
 
             var app = builder.Build();
 
@@ -41,9 +46,9 @@ namespace LibraryApp
 
             app.UseRouting();
 
-            app.UseAuthorization();
+            app.UseAuthentication();
 
-            app.UseSession();
+            app.UseAuthorization();
 
             app.MapControllerRoute(
                 name: "default",

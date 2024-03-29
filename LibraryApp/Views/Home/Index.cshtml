@@ -1,4 +1,5 @@
-﻿@model IEnumerable<LibraryApp.Models.BookCopyViewModel>
+﻿@using LibraryApp.Entities
+@model IEnumerable<LibraryApp.Models.BookCopyViewModel>
 
 @{
     ViewData["Title"] = "Index";
@@ -6,9 +7,10 @@
 
 @if (TempData["AlertMessage"] is not null)
 {
-    <script>
-        alert("Nie możesz wypożyczyć niedostępnej książki!")
-    </script>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Błąd!</strong>  @TempData["AlertMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 }
 
 <h1>Dostępne książki</h1>
@@ -57,9 +59,12 @@
                     @Html.DisplayFor(modelItem => item.Available)
                 </td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Book.Id">Edytuj</a> |
+                    @if (User.IsInRole("Admin")) // Check whether user is admin
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.Book.Id">Edytuj</a> 
+                        <a asp-action="Delete" asp-route-id="@item.Book.Id">Usuń</a> 
+                    }
                     <a asp-action="Details" asp-route-id="@item.Book.Id">Szczegóły</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Book.Id">Usuń</a> |
                     <a asp-action="Rent" asp-route-id="@item.Book.Id">Wypożycz</a>
                 </td>
             </tr>
